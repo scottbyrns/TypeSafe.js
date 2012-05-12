@@ -11,10 +11,10 @@ Not much error handling in the way of stabalizing unhappy paths through the code
 ### Example Ussage
 ```java
 new Interface({
-	type: "Integer",
+	type: "com.example.IntegerInterface",
 	constructor: {
 		'return-value': {
-			type: 'int'
+			type: 'com.example.Integer'
 		},
 		'input-parameters': [
 			{
@@ -28,12 +28,12 @@ new Interface({
 			name: "multiplyBy",
 			interface: {
 				'return-value': {
-					type: 'int'
+					type: 'com.example.Integer'
 				},
 				'input-parameters': [
 					{
 						name: 'factor',
-						type: 'int'
+						type: 'com.example.Integer'
 					}
 				]
 			}
@@ -41,9 +41,9 @@ new Interface({
 	]
 });
 
-var Integer = new TypeSafeClass({
-	type: 'int',
-	implements: 'Integer',
+new TypeSafeClass({
+	type: 'com.example.Integer',
+	implements: 'com.example.IntegerInterface',
 	constructor: function (value) {
 		this.setValue(value || 0);
 	},

@@ -13,6 +13,9 @@
  * specific language governing permissions and limitations under the License.
  *
  */
+
+__GLOBAL_NAMESPACE__ = window;
+
 Object.prototype.setType = function (type) {
 	this.objectType = type;
 	return this;
@@ -105,101 +108,97 @@ Function.prototype.checkInterfaceAgainst = Object.prototype.checkInterfaceAgains
 	return true;
 };
 
-var TypeSafeClass = function (config) {
-	var theClass = function (config) {
-		return function () {
-			this.setType(config.type);
-			config.constructor.setInterface(Interface.getInterfaceNamed(config.implements).getConstructor());
-			config.constructor.checkType.apply(arguments);
-			config.constructor.apply(this, arguments);
-			// this.interface = config.interface;
-			this.setInterface(Interface.getInterfaceNamed(config.implements));
-		}
-	}(config);
-	theClass.setInterface(config.interface);
-	
-	var properties = config.properties;
-	for (propertyIndex in properties) {
-		if (properties.hasOwnProperty(propertyIndex)) {
-			var txt = properties[propertyIndex].name;
-			var type = properties[propertyIndex].type;
-			var camelCasedMethodName = txt.substr(0, 1).toUpperCase() + txt.substr(1, txt.length);
-			theClass.prototype['get' + camelCasedMethodName] = function () {
-				return this[txt];
-			};
-			theClass.prototype['set' + camelCasedMethodName] = function (typedValue) {
-				var inputType = (typeof typedValue);
-				if (typedValue.getType && typedValue.getType() != undefined) {
-					inputType = typedValue.getType();						
+var TypeSafeClass = function (global) {
+	var classRegister = {};
+	return function (config) {
+		var theClass = function (config) {
+			return function () {
+				if (this == __GLOBAL_NAMESPACE__) {
+					throw new Error("No static constructor is available for this type safe class.");
 				}
 				try {
-					if (inputType == type) {
-						this[txt] = arguments[0];
-					}
-					else {
-						throw new Error("Expected value of type: " + type + " but found value of type: " + inputType);
-					}
+					this.setType(config.type);
+					config.constructor.setInterface(Interface.getInterfaceNamed(config.implements).getConstructor());
+					config.constructor.checkType.apply(arguments);
+					config.constructor.apply(this, arguments);
+					this.setInterface(Interface.getInterfaceNamed(config.implements));
 				}
 				catch (e) {
-					throw new Error(e);
-					throw new Error("Setting typed value with untyped parameter.");
+					throw new Error("No static constructor is available for this type safe class.")
 				}
-			};
-		}
-	}
-	
-	var methods = Interface.getInterfaceNamed(config.implements).getMethods();
-	// method.name
-	// method.interface
-	// method.interface['return-value'] // type
-	// method.interface['input-parameters'] // array
-	
-	for (methodId in methods) {
-		if (!methods.hasOwnProperty(methodId)) {
-			continue;
-		}
-		var method = methods[methodId];
-		theClass.prototype[method.name] = function (method) {
-			if (config[method.name]) {
-				config[method.name].setInterface(method.interface);
-				var operation = function () {
-					var allGo = config[method.name].checkType.apply(arguments);
-					if (allGo) {
-						return config[method.name].apply(this, arguments);
+			}
+		}(config);
+		theClass.setInterface(config.interface);
+
+		var properties = config.properties;
+		for (propertyIndex in properties) {
+			if (properties.hasOwnProperty(propertyIndex)) {
+				var txt = properties[propertyIndex].name;
+				var type = properties[propertyIndex].type;
+				var camelCasedMethodName = txt.substr(0, 1).toUpperCase() + txt.substr(1, txt.length);
+				theClass.prototype['get' + camelCasedMethodName] = function () {
+					return this[txt];
+				};
+				theClass.prototype['set' + camelCasedMethodName] = function (typedValue) {
+					var inputType = (typeof typedValue);
+					if (typedValue.getType && typedValue.getType() != undefined) {
+						inputType = typedValue.getType();						
+					}
+					try {
+						if (inputType == type) {
+							this[txt] = arguments[0];
+						}
+						else {
+							throw new Error("Expected value of type: " + type + " but found value of type: " + inputType);
+						}
+					}
+					catch (e) {
+						throw new Error(e);
+						throw new Error("Setting typed value with untyped parameter.");
 					}
 				};
-				operation.setInterface(method.interface);
-				return operation;
 			}
-			else {
-				throw new Error("Class does not implement " + method.name);
+		}
+
+		var methods = Interface.getInterfaceNamed(config.implements).getMethods();
+
+		for (methodId in methods) {
+			if (!methods.hasOwnProperty(methodId)) {
+				continue;
 			}
-		}(method);
-		
-		method.name
-		method.interface
-		method.interface['return-value'] // type
-		method.interface['input-parameters'] // array
-	}
-	
-	// var instanceMethods = config.instanceMethods;
-	// var self = this;
-	// for (method in instanceMethods) {
-	// 	if (instanceMethods.hasOwnProperty(method)) {
-	// 		theClass.prototype[instanceMethods[method].name] = function (method) {
-	// 			var operation = function () {
-	// 				var allGo = method.operation.checkType.apply(arguments);
-	// 				if (allGo) {
-	// 					return method.operation.apply(this, arguments);
-	// 				}
-	// 			};
-	// 			operation.setInterface(method.interface);
-	// 			return operation;
-	// 		}(instanceMethods[method]);
-	// 	}
-	// }
-	return theClass;
-};
+			var method = methods[methodId];
+			theClass.prototype[method.name] = function (method) {
+				if (config[method.name]) {
+					config[method.name].setInterface(method.interface);
+					var operation = function () {
+						var allGo = config[method.name].checkType.apply(arguments);
+						if (allGo) {
+							return config[method.name].apply(this, arguments);
+						}
+					};
+					operation.setInterface(method.interface);
+					return operation;
+				}
+				else {
+					throw new Error("Class does not implement " + method.name);
+				}
+			}(method);
+
+			method.name
+			method.interface
+			method.interface['return-value'] // type
+			method.interface['input-parameters'] // array
+		}
+		classRegister[config.type] = theClass;
+		var typePath = config.type.split('.');
+		var depth = global;
+		for (var i = 0; i < typePath.length - 1; i += 1) {
+			depth = depth[typePath[i]] = depth[typePath[i]] || {};
+		}
+		depth[typePath[typePath.length - 1]] = theClass;
+		return theClass;
+	};
+}(__GLOBAL_NAMESPACE__);
 
 var Interface = function () {
 	var interfaceRegister = {
@@ -225,3 +224,64 @@ var Interface = function () {
 	}
 	return Interface;
 }();
+
+
+
+
+
+
+
+new Interface({
+	type: "com.example.IntegerInterface",
+	constructor: {
+		'return-value': {
+			type: 'com.example.Integer'
+		},
+		'input-parameters': [
+			{
+				name: 'factor',
+				type: 'number'
+			}
+		]
+	},
+	methods: [
+		{
+			name: "multiplyBy",
+			interface: {
+				'return-value': {
+					type: 'com.example.Integer'
+				},
+				'input-parameters': [
+					{
+						name: 'factor',
+						type: 'com.example.Integer'
+					}
+				]
+			}
+		}
+	]
+});
+
+new TypeSafeClass({
+	type: 'com.example.Integer',
+	implements: 'com.example.IntegerInterface',
+	constructor: function (value) {
+		this.setValue(value || 0);
+	},
+	properties: [
+		{
+			name: 'value',
+			type: 'number'
+		}
+	],
+	multiplyBy: function (factor) {
+		return new com.example.Integer(this.getValue() * factor.getValue());
+	}
+});
+
+var rows = new com.example.Integer(2);
+var columns = new com.example.Integer(7);
+columns.setValue(12);
+
+var cells = rows.multiplyBy(columns);
+cells.getValue(); // 24
