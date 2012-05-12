@@ -57,4 +57,12 @@ var Integer = new TypeSafeClass({
 		}
 	]
 });
+
+var rows = new Integer(2);
+var columns = new Integer(2);
+columns.setValue(12);
+
+var cells = rows.multiplyBy(columns);
+cells.getValue(); // 24
+
 ```
