@@ -54,12 +54,12 @@ new TypeSafeClass({
 		}
 	],
 	multiplyBy: function (factor) {
-		return new Integer(this.getValue() * factor.getValue());
+		return new com.example.Integer(this.getValue() * factor.getValue());
 	}
 });
 
-var rows = new Integer(2);
-var columns = new Integer(2);
+var rows = new com.example.Integer(2);
+var columns = new com.example.Integer(7);
 columns.setValue(12);
 
 var cells = rows.multiplyBy(columns);
