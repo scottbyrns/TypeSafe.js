@@ -27,7 +27,7 @@ var IntegerInterface = new Interface({
 
 var Integer = new TypeSafeClass({
 	type: 'int',
-	extends: IntegerInterface,
+	implements: IntegerInterface,
 	constructor: function (value) {
 		this.setValue(value || 0);
 	},

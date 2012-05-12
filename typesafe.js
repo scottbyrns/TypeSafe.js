@@ -107,12 +107,9 @@ Function.prototype.checkInterfaceAgainst = Object.prototype.checkInterfaceAgains
 
 var TypeSafeClass = function (config) {
 	var theClass = function (config) {
-		if (config.extends) {
-			
-		}
 		return function () {
 			this.setType(config.type);
-			config.constructor.setInterface(config.extends.getConstructor());
+			config.constructor.setInterface(config.implements.getConstructor());
 			config.constructor.checkType.apply(arguments);
 			config.constructor.apply(this, arguments);
 			// this.interface = config.interface;
