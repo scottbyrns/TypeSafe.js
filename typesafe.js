@@ -109,11 +109,11 @@ var TypeSafeClass = function (config) {
 	var theClass = function (config) {
 		return function () {
 			this.setType(config.type);
-			config.constructor.setInterface(config.implements.getConstructor());
+			config.constructor.setInterface(Interface.getInterfaceNamed(config.implements).getConstructor());
 			config.constructor.checkType.apply(arguments);
 			config.constructor.apply(this, arguments);
 			// this.interface = config.interface;
-			this.setInterface(config.interface);
+			this.setInterface(Interface.getInterfaceNamed(config.implements));
 		}
 	}(config);
 	theClass.setInterface(config.interface);
@@ -148,35 +148,80 @@ var TypeSafeClass = function (config) {
 		}
 	}
 	
-	var instanceMethods = config.instanceMethods;
-	var self = this;
-	for (method in instanceMethods) {
-		if (instanceMethods.hasOwnProperty(method)) {
-			theClass.prototype[instanceMethods[method].name] = function (method) {
+	var methods = Interface.getInterfaceNamed(config.implements).getMethods();
+	// method.name
+	// method.interface
+	// method.interface['return-value'] // type
+	// method.interface['input-parameters'] // array
+	
+	for (methodId in methods) {
+		if (!methods.hasOwnProperty(methodId)) {
+			continue;
+		}
+		var method = methods[methodId];
+		theClass.prototype[method.name] = function (method) {
+			if (config[method.name]) {
+				config[method.name].setInterface(method.interface);
 				var operation = function () {
-					var allGo = method.operation.checkType.apply(arguments);
+					var allGo = config[method.name].checkType.apply(arguments);
 					if (allGo) {
-						return method.operation.apply(this, arguments);
+						return config[method.name].apply(this, arguments);
 					}
 				};
 				operation.setInterface(method.interface);
 				return operation;
-			}(instanceMethods[method]);
-		}
+			}
+			else {
+				throw new Error("Class does not implement " + method.name);
+			}
+		}(method);
+		
+		method.name
+		method.interface
+		method.interface['return-value'] // type
+		method.interface['input-parameters'] // array
 	}
+	
+	// var instanceMethods = config.instanceMethods;
+	// var self = this;
+	// for (method in instanceMethods) {
+	// 	if (instanceMethods.hasOwnProperty(method)) {
+	// 		theClass.prototype[instanceMethods[method].name] = function (method) {
+	// 			var operation = function () {
+	// 				var allGo = method.operation.checkType.apply(arguments);
+	// 				if (allGo) {
+	// 					return method.operation.apply(this, arguments);
+	// 				}
+	// 			};
+	// 			operation.setInterface(method.interface);
+	// 			return operation;
+	// 		}(instanceMethods[method]);
+	// 	}
+	// }
 	return theClass;
 };
 
-var Interface = function (config) {
-	this.setType(config.type);
-	this.constructor = config.constructor;
-	this.methods = config.methods;
-};
+var Interface = function () {
+	var interfaceRegister = {
+		
+	};
+	var Interface = function (config) {
+		this.setType(config.type);
+		this.constructor = config.constructor;
+		this.methods = config.methods;
+		interfaceRegister[config.type] = this;
+	};
 
-Interface.prototype.getConstructor = function () {
-	return this.constructor;
-},
+	Interface.prototype.getConstructor = function () {
+		return this.constructor;
+	},
 
-Interface.prototype.getMethods = function () {
-	return this.methods;
-};
+	Interface.prototype.getMethods = function () {
+		return this.methods;
+	};
+	
+	Interface.getInterfaceNamed = function (name) {
+		return interfaceRegister[name];
+	}
+	return Interface;
+}();

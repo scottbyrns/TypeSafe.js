@@ -10,8 +10,8 @@ Not much error handling in the way of stabalizing unhappy paths through the code
 
 ### Example Ussage
 ```java
-var IntegerInterface = new Interface({
-	type: "integer-interface",
+new Interface({
+	type: "Integer",
 	constructor: {
 		'return-value': {
 			type: 'int'
@@ -22,22 +22,8 @@ var IntegerInterface = new Interface({
 				type: 'number'
 			}
 		]
-	}
-});
-
-var Integer = new TypeSafeClass({
-	type: 'int',
-	implements: IntegerInterface,
-	constructor: function (value) {
-		this.setValue(value || 0);
 	},
-	properties: [
-		{
-			name: 'value',
-			type: 'number'
-		}
-	],
-	instanceMethods: [
+	methods: [
 		{
 			name: "multiplyBy",
 			interface: {
@@ -50,12 +36,26 @@ var Integer = new TypeSafeClass({
 						type: 'int'
 					}
 				]
-			},
-			operation: function (factor) {
-				return new Integer(this.getValue() * factor.getValue());
 			}
 		}
 	]
+});
+
+var Integer = new TypeSafeClass({
+	type: 'int',
+	implements: 'Integer',
+	constructor: function (value) {
+		this.setValue(value || 0);
+	},
+	properties: [
+		{
+			name: 'value',
+			type: 'number'
+		}
+	],
+	multiplyBy: function (factor) {
+		return new Integer(this.getValue() * factor.getValue());
+	}
 });
 
 var rows = new Integer(2);
