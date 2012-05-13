@@ -3,12 +3,13 @@
 Type safety for javascript.
 
 ### Notes ###
-Automatic type safe getter and setter generation for properties.
-All type violations should throw exceptions. I need to add specific type exceptions that can be handled specifically.
-No autoboxing for primatives yet.
-Not much error handling in the way of stabalizing unhappy paths through the code.
+* Automatic type safe getter and setter generation for properties.
+* Private & Public methods.
+* All type violations should throw exceptions. I need to add specific type exceptions that can be handled specifically.
+* No auto-boxing for primitives yet.
+* Not much error handling in the way of stabilizing unhappy paths through the code.
 
-### Example Ussage
+### Example Usage
 ```java
 new Interface({
 	type: "com.example.IntegerInterface",
@@ -24,20 +25,36 @@ new Interface({
 		]
 	},
 	methods: [
-		{
-			name: "multiplyBy",
-			interface: {
-				'return-value': {
+	{
+		name: "multiplyBy",
+		interface: {
+			'scope': 'public',
+			'return-value': {
+				type: 'com.example.Integer'
+			},
+			'input-parameters': [
+				{
+					name: 'factor',
 					type: 'com.example.Integer'
-				},
-				'input-parameters': [
-					{
-						name: 'factor',
-						type: 'com.example.Integer'
-					}
-				]
-			}
+				}
+			]
 		}
+	},
+	{
+		name: "doMultiply",
+		interface: {
+			'scope': 'private',
+			'return-value': {
+				type: 'com.example.Integer'
+			},
+			'input-parameters': [
+				{
+					name: 'factor',
+					type: 'com.example.Integer'
+				}
+			]
+		}
+	}
 	]
 });
 
@@ -54,6 +71,9 @@ new TypeSafeClass({
 		}
 	],
 	multiplyBy: function (factor) {
+		return this.doMultiply(factor);
+	},
+	doMultiply: function (factor) {
 		return new com.example.Integer(this.getValue() * factor.getValue());
 	}
 });
@@ -64,5 +84,7 @@ columns.setValue(12);
 
 var cells = rows.multiplyBy(columns);
 cells.getValue(); // 24
+
+
 
 ```

@@ -115,8 +115,18 @@ Function.prototype.checkInterfaceAgainst = Object.prototype.checkInterfaceAgains
 
 var TypeSafeClass = function (global) {
 	var classRegister = {};
+	
 	return function (config) {
+		
+		
 		var theClass = function (config) {
+			// Creating an access controll list for restricting method access.
+			var methodAccessControlList = {};
+			var methodInterfaces = Interface.getInterfaceNamed(config.implements).methods;
+			for (var mii = 0; mii < methodInterfaces.length; mii += 1) {
+				var method = methodInterfaces[mii];
+				methodAccessControlList[method.name] = {scope:method.interface.scope, uid:new Date().getTime()} || {scope:'public', uid:new Date().getTime()};
+			}
 			return function () {
 				if (this == __GLOBAL_NAMESPACE__) {
 					throw new Error("No static constructor is available for this type safe class.");
@@ -130,6 +140,12 @@ var TypeSafeClass = function (global) {
 				}
 				catch (e) {
 					throw new Error("No static constructor is available for this type safe class.")
+				}
+				this.getAccessControlList = function (internalCall) {
+					if (internalCall) {
+						
+					}
+					return methodAccessControlList;
 				}
 			}
 		}(config);
@@ -177,8 +193,18 @@ var TypeSafeClass = function (global) {
 					config[method.name].setInterface(method.interface);
 					var operation = function () {
 						var allGo = config[method.name].checkType.apply(arguments);
+						if (this.getAccessControlList()[method.name].scope == 'private') {
+							if (this.uid != this.getAccessControlList()[method.name].uid) {
+								throw new Error("Access violation. Call to private method.");
+							}
+						}
 						if (allGo) {
-							return config[method.name].apply(this, arguments);
+							// Issue UID to our object.
+							this.uid = this.getAccessControlList()[method.name].uid;
+							var output = config[method.name].apply(this, arguments);
+							// Strip the UID now that our method call is finished.
+							this.uid = undefined;
+							return output;
 						}
 					};
 					operation.setInterface(method.interface);
@@ -189,19 +215,19 @@ var TypeSafeClass = function (global) {
 				}
 			}(method);
 
-			method.name
-			method.interface
-			method.interface['return-value'] // type
-			method.interface['input-parameters'] // array
 		}
+		
 		classRegister[config.type] = theClass;
+		
 		var typePath = config.type.split('.');
 		var depth = global;
+		
 		for (var i = 0; i < typePath.length - 1; i += 1) {
 			depth = depth[typePath[i]] = depth[typePath[i]] || {};
 		}
+		
 		depth[typePath[typePath.length - 1]] = theClass;
-		// depth[typePath[typePath.length - 1]].setInterface(config.interface);
+		
 		return theClass;
 	};
 }(__GLOBAL_NAMESPACE__);
@@ -219,10 +245,26 @@ var Interface = function () {
 
 	Interface.prototype.getConstructor = function () {
 		return this.constructor;
-	},
+	};
 
 	Interface.prototype.getMethods = function () {
 		return this.methods;
+	};
+	
+	Interface.prototype.toXML = function () {
+		
+	};
+	
+	Interface.prototype.toJSON = function () {
+
+	};
+	
+	Interface.prototype.toJava = function () {
+		var outputObject = {
+			type: this.getType(),
+			constructor: this.constructor,
+			methods: this.methods
+		};
 	};
 
 	Interface.getInterfaceNamed = function (name) {
@@ -230,3 +272,4 @@ var Interface = function () {
 	}
 	return Interface;
 }();
+
