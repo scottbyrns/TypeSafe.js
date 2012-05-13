@@ -216,8 +216,12 @@ var TypeSafeClass = function (global) {
 										catch (e) {
 											// No aliases.
 										}
-										if (input[i].type != type) {
-											throw new Error("Invalid argument for parameter named: " + input[i].name + ". Expected input of type: " + input[i].type + " but received input of type: " + type + ".");
+										
+
+										if (input[i].type != arguments[i].__getType() && input[i].type != type) {
+											if (input[i].type != typeof arguments[i]) {
+												throw new Error("Invalid argument for parameter named: " + input[i].name + ". Expected input of type: " + input[i].type + " but received input of type: " + type + ".");
+											}
 										}
 									}
 									catch (e) {
