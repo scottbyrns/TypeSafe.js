@@ -56,6 +56,11 @@ Function.prototype.setInterface = Object.prototype.setInterface = function (inte
 	this.interface = interface;
 };
 
+Function.prototype.getInterface = Object.prototype.getInterface = function () {
+	return this.interface;
+};
+
+
 Function.prototype.isImplementationOf = Object.prototype.isImplementationOf = function (object) {
 	try {
 		return this.checkInterfaceAgainst(object);
@@ -128,7 +133,7 @@ var TypeSafeClass = function (global) {
 				}
 			}
 		}(config);
-		theClass.setInterface(config.interface);
+		theClass.setInterface(Interface.getInterfaceNamed(config.implements));
 
 		var properties = config.properties;
 		for (propertyIndex in properties) {
@@ -196,13 +201,14 @@ var TypeSafeClass = function (global) {
 			depth = depth[typePath[i]] = depth[typePath[i]] || {};
 		}
 		depth[typePath[typePath.length - 1]] = theClass;
+		// depth[typePath[typePath.length - 1]].setInterface(config.interface);
 		return theClass;
 	};
 }(__GLOBAL_NAMESPACE__);
 
 var Interface = function () {
 	var interfaceRegister = {
-		
+
 	};
 	var Interface = function (config) {
 		this.setType(config.type);
@@ -218,7 +224,7 @@ var Interface = function () {
 	Interface.prototype.getMethods = function () {
 		return this.methods;
 	};
-	
+
 	Interface.getInterfaceNamed = function (name) {
 		return interfaceRegister[name];
 	}
