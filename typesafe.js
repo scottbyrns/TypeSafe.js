@@ -124,10 +124,15 @@ var TypeSafeClass = function (global) {
 		var theClass = function (config) {
 			// Creating an access controll list for restricting method access.
 			var methodAccessControlList = {};
-			var methodInterfaces = Interface.getInterfaceNamed(config.implements).methods;
+			try {
+				var methodInterfaces = Interface.getInterfaceNamed(config.implements).methods;
+			}
+			catch (e) {
+				throw new Error("Interface definition for: " + config.implements + " not found.");
+			}
 			for (var mii = 0; mii < methodInterfaces.length; mii += 1) {
 				var method = methodInterfaces[mii];
-				methodAccessControlList[method.name] = {scope:method.interface.scope, uid:new Date().getTime()} || {scope:'public', uid:new Date().getTime()};
+				methodAccessControlList[method.name] = {scope:method.interface.scope, uid:new Date().getTime()} || {scope:'private', uid:new Date().getTime()};
 			}
 			return function () {
 				if (this == __GLOBAL_NAMESPACE__) {
@@ -158,25 +163,20 @@ var TypeSafeClass = function (global) {
 				var txt = properties[propertyIndex].name;
 				var type = properties[propertyIndex].type;
 				var camelCasedMethodName = txt.substr(0, 1).toUpperCase() + txt.substr(1, txt.length);
-				theClass.prototype['get' + camelCasedMethodName] = function () {
+				config['get' + camelCasedMethodName] = theClass.prototype['get' + camelCasedMethodName] = function () {
 					return privateProperties[txt];
 				};
-				theClass.prototype['set' + camelCasedMethodName] = function (typedValue) {
+				config['set' + camelCasedMethodName] = theClass.prototype['set' + camelCasedMethodName] = function (typedValue) {
 					var inputType = (typeof typedValue);
 					if (typedValue.__getType && typedValue.__getType() != undefined) {
 						inputType = typedValue.__getType();						
 					}
-					try {
-						if (inputType == type) {
-							privateProperties[txt] = arguments[0];
-						}
-						else {
-							throw new Error("Expected value of type: " + type + " but found value of type: " + inputType);
-						}
+
+					if (inputType == type) {
+						privateProperties[txt] = arguments[0];
 					}
-					catch (e) {
-						console.log(e);
-						throw new Error("Setting typed value with untyped parameter.");
+					else {
+						throw new Error("Expected value of type: " + type + " but found value of type: " + inputType);
 					}
 				};
 			}
@@ -202,6 +202,32 @@ var TypeSafeClass = function (global) {
 						if (allGo) {
 							// Issue UID to our object.
 							this.__access_token__ = this.__get_access_control_list__()[method.name].uid;
+							var input = config[method.name].getInterface()['input-parameters'];
+							if (!(input == undefined && arguments.length == 0)) {
+								for (var i = 0, len = input.length; i < len; i += 1) {
+									try {
+										var type = arguments[i].__getType() || typeof arguments[i];
+										try {
+											if (Interface.getInterfaceNamed(input[i].type).hasAliasOf(type)) {
+												type = input[i].type;
+											}
+										}
+										catch (e) {
+											// No aliases.
+										}
+										if (input[i].type != type) {
+											throw new Error("Invalid argument for parameter named: " + input[i].name + ". Expected input of type: " + input[i].type + " but received input of type: " + type + ".");
+										}
+									}
+									catch (e) {
+										throw e;
+										throw new Error("Invalid arguments.");
+									}
+								}	
+							}
+							else if (input == undefined && arguments.length > 0) {
+								throw new Error("No arguments were expected.");
+							}
 							var output = config[method.name].apply(this, arguments);
 							// Strip the UID now that our method call is finished.
 							this.__access_token__ = undefined;
@@ -235,13 +261,26 @@ var TypeSafeClass = function (global) {
 
 var Interface = function () {
 	var interfaceRegister = {
-
+		
 	};
-	var Interface = function (config) {
-		this.__setType(config.type);
-		this.constructor = config.constructor;
-		this.methods = config.methods;
-		interfaceRegister[config.type] = this;
+	
+	var Interface = function (interfaceRegister) {
+		return function (config) {
+			this.__setType(config.type);
+			this.constructor = config.constructor;
+			this.methods = config.methods;
+			this.alias = config.alias;
+			interfaceRegister[config.type] = this;
+		};
+	}(interfaceRegister);
+	
+	Interface.prototype.hasAliasOf = function (alias) {
+		for (var i = 0; i < this.alias.length; i += 1) {
+			if (this.alias[i] == alias) {
+				return true;
+			}
+		}
+		return false;
 	};
 
 	Interface.prototype.getConstructor = function () {
@@ -278,9 +317,11 @@ var Interface = function () {
 	// };
 	// 
 
-	Interface.getInterfaceNamed = function (name) {
-		return interfaceRegister[name];
-	}
+	Interface.getInterfaceNamed = function (interfaceRegister) {
+		return function (name) {
+			return interfaceRegister[name];
+		}
+	}(interfaceRegister);
 	return Interface;
 }();
 

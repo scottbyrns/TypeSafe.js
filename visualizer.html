@@ -1,0 +1,61 @@
+<html>
+	<head>
+	</head>
+	<body>
+		See your console.
+		<script src="typesafe.js" type="text/javascript"></script>
+		<script src="generics.js" type="text/javascript"></script>
+		<script src="visualizer/interfaces/com.scottbyrns.geo.Location.js" type="text/javascript"></script>
+		<script type="text/javascript">
+		
+		new Interface({
+			type: "com.scottbyrns.Visualization",
+			constructor: {
+				'return-value': {
+					type: 'com.scottbyrns.Visualization'
+				}
+			},
+			methods: [
+				{
+					name: "drawInterface",
+					interface: {
+						'scope': 'public',
+						'input-parameters': [
+							{
+								name: "interface",
+								type: "Interface"
+							},
+							{
+								name: "location",
+								type: "com.scottbyrns.geo.Location"
+							}
+						]
+					}
+				}
+			]
+		});
+		new TypeSafeClass({
+			type: 'com.scottbyrns.Visualization',
+			implements: 'com.scottbyrns.Visualization',
+			constructor: function () {
+				console.log('asdf');
+			},
+			drawInterface: function (interface, location) {
+				console.log('draw');
+			}
+		});
+		
+		new TypeSafeClass({
+			type: 'com.scottbyrns.geo.Location',
+			implements: 'com.scottbyrns.geo.Location',
+			constructor: function () {
+				console.log('asdf');
+			},
+			properties: [
+				{name:"latitude", type:"number"},
+				{name:"longitude", type:"number"}
+			]
+		});
+		</script>
+	</body>
+</html>
