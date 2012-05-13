@@ -1,0 +1,112 @@
+<html>
+	<head>
+	</head>
+	<body>
+		See your console.
+		<script src="typesafe.js" type="text/javascript"></script>
+		<script src="generics.js" type="text/javascript"></script>
+		<script src="visualizer/interfaces/com.scottbyrns.geo.Location.js" type="text/javascript"></script>
+		<script type="text/javascript">
+		
+		new Interface({
+			type: "com.scottbyrns.Visualization",
+			constructor: {
+				'return-value': {
+					type: 'com.scottbyrns.Visualization'
+				}
+			},
+			methods: [
+				{
+					name: "drawInterface",
+					interface: {
+						'scope': 'public',
+						'input-parameters': [
+							{
+								name: "interface",
+								type: "object"
+							},
+							// {
+							// 	name: "location",
+							// 	type: "com.scottbyrns.geo.Location"
+							// }
+						]
+					}
+				}
+			]
+		});
+		new TypeSafeClass({
+			type: 'com.scottbyrns.Visualization',
+			implements: 'com.scottbyrns.Visualization',
+			drawInterface: function (interface) {
+				var methods = interface.methods;
+				var name = interface.__objectType__;
+				var constructor = interface.constructor;
+				
+				var html = [
+					'<h1>',
+					name,
+					'</h1>',
+					'<h2>+ ',
+					'Constructor (',
+				];
+				
+				for (var i = 0; i < constructor['input-parameters'].length; i += 1) {
+					html.push("(" + constructor['input-parameters'][i].name + ")" + constructor['input-parameters'][i].type);
+					html.push(", ");
+				}
+				html.pop();
+				
+				html = html.concat([
+					') : ',
+					constructor['return-value'].type,
+					'</h2>',
+					'<ul>',
+				]);
+				
+				for (var i = 0; i < methods.length; i += 1) {
+					html.push("<li>");
+					var scope = methods[i].interface.scope || 'private';
+					html.push(scope);
+					html.push(" (" + methods[i].interface['return-value'].type + ") ");
+					html.push("<strong>" + methods[i].name + "</strong> ");
+					// html.push("(" + constructor['input-parameters'][i].name + ")" + constructor['input-parameters'][i].type + ", ");
+					
+					try {
+						html.push("(");
+						for (var j = 0; j < methods[i].interface['input-parameters'].length; j += 1) {
+							html.push("(" + methods[i].interface['input-parameters'][j].name + ")" + constructor['input-parameters'][j].type);
+							html.push(", ");
+						}
+						html.pop();
+						html.push(")");
+					}
+					catch (e) {
+						html.pop();
+						html.push(" ()");
+					}
+					
+					html.push("</li>");
+				}
+				html.push("</ul>");
+				
+				document.getElementsByTagName("body")[0].innerHTML = html.join("");
+				
+			}
+		});
+		
+		new TypeSafeClass({
+			type: 'com.scottbyrns.geo.Location',
+			implements: 'com.scottbyrns.geo.Location',
+			properties: [
+				{name:"latitude", type:"number"},
+				{name:"longitude", type:"number"}
+			]
+		});
+		
+		
+		var a = new com.scottbyrns.Visualization();
+		var b = new com.scottbyrns.geo.Location();
+		a.drawInterface(Interface.getInterfaceNamed('com.example.Integer'));
+		</script>
+	</body>
+</html>
