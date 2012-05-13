@@ -1,0 +1,222 @@
+<html>
+	<head>
+	</head>
+	<body>
+		See your console.
+		<script src="typesafe.js" type="text/javascript"></script>
+		<script type="text/javascript">
+		new Interface({
+			type: "com.example.IntegerInterface",
+			constructor: {
+				'return-value': {
+					type: 'com.example.Integer'
+				},
+				'input-parameters': [
+					{
+						name: 'factor',
+						type: 'number'
+					}
+				]
+			},
+			methods: [
+			{
+				name: "multiplyBy",
+				interface: {
+					'scope': 'public',
+					'return-value': {
+						type: 'com.example.Integer'
+					},
+					'input-parameters': [
+						{
+							name: 'factor',
+							type: 'com.example.Integer'
+						}
+					]
+				}
+			},
+			{
+				name: "doMultiply",
+				interface: {
+					'scope': 'private',
+					'return-value': {
+						type: 'com.example.Integer'
+					},
+					'input-parameters': [
+						{
+							name: 'factor',
+							type: 'com.example.Integer'
+						}
+					]
+				}
+			}
+			]
+		});
+
+		new TypeSafeClass({
+			type: 'com.example.Integer',
+			implements: 'com.example.IntegerInterface',
+			constructor: function (value) {
+				this.setValue(value || 0);
+			},
+			properties: [
+				{
+					name: 'value',
+					type: 'number'
+				}
+			],
+			multiplyBy: function (factor) {
+				return this.doMultiply(factor);
+			},
+			doMultiply: function (factor) {
+				return new com.example.Integer(this.getValue() * factor.getValue());
+			}
+		});
+
+		var rows = new com.example.Integer(2);
+		var columns = new com.example.Integer(7);
+		columns.setValue(12);
+
+		var cells = rows.multiplyBy(columns);
+		cells.getValue(); // 24
+
+		console.log("Welcome. For help type help.");
+		var TAB = "     ";
+		help = [
+			"",
+			"TypeSafe.js",
+			"",
+			"TypeSafe.js introduces some fundamental changes to the prototypes of Object and Function.",
+			"These changes are designed to allow us to track the types of objects.",
+			"",
+			"",
+			"To begin you can create a new instance of com.example.Integer by typing:",
+			TAB + "var myInt = new com.example.Integer(2);",
+			"",
+			"",
+			"You can call the public method Integer#multiplyBy(Integer factor) as defined",
+			"by its interface which can bee seen by calling:",
+			TAB + "com.example.Integer.getInterface()",
+			"",
+			"",
+			"For instructions on how to define an interface type interfaces.",
+			"For instructions on defining a new type safe class type helloworld",
+			"",
+			"",
+			"Commands",
+			"",
+			TAB + " * help",
+			TAB + " * interfaces",
+			TAB + " * helloworld",
+			""
+		].join("\n");
+		
+		helloworld = [
+			"",
+			"Hello World in TypeSafe.js",
+			"",
+			"Each type safe object requires an interface definition.",
+			"To learn about defining interfaces type interfaces.",
+			"",
+			"Once you have defined an interface you can define an implementing",
+			"class. You do not need to hold onto a reference to the interface.",
+			"",
+			"A class is defined in 5 parts.",
+			"",
+			"",
+			TAB + " * Type - The name including namespace of your class.",
+			TAB + TAB + " The name is split on . and namespaces are created for you.",
+			"",
+			TAB + " * Implements - The type you defined for your interface. (same string)",
+			"",
+			TAB + " * Constructor - The method that is called when your object is created.",
+			"",
+			TAB + " * Properties - The properties held by your class and their types.",
+			TAB + "                TypeSafe getters and setters are automatically generated for",
+			TAB + "                these properties.",
+			"",
+			TAB + " * Methods - Every method defined in your interface must be implemented",
+			TAB + "             in your class configuration object. Place each method as a",
+			TAB + "             properties of your configuration. There is no parent node for methods.",
+			"",
+			"",
+			"",
+			"Example:",
+			TAB + 'new TypeSafeClass({',
+			TAB + '	type: "com.example.HelloWorld",',
+			TAB + '	implements: "com.example.HelloWorld",',
+			TAB + '	constructor : function () {},',
+			TAB + '	properties: [],',
+			TAB + '	live: function () {',
+			TAB + '		alert("hello world");',
+			TAB + '	}',
+			TAB + '});',
+			TAB + '',
+			TAB + 'var ourWorld = new com.example.HelloWorld();',
+			TAB + 'ourWorld.live();',
+			""
+		].join("\n")
+		
+		interfaces = [
+			"",
+			"Interfaces",
+			"",
+			"Interfaces are defined by creating a new instance of the Interface object.",
+			"",
+			"Example:",
+			TAB + 'new Interface({',
+			TAB + '	type: "com.example.HelloWorld",',
+			TAB + '	constructor: {',
+			TAB + '		"return-value": {',
+			TAB + '			type: "com.example.HelloWorld"',
+			TAB + '		}',
+			TAB + '	},',
+			TAB + '	methods: [',
+			TAB + '	{',
+			TAB + '		name: "live",',
+			TAB + '		interface: {',
+			TAB + '			"scope": "public",',
+			TAB + '		}',
+			TAB + '	}',
+			TAB + '	]',
+			TAB + '});',
+			""
+		].join("\n");
+		
+		// 
+		// new Interface({
+		// 	type: "com.example.HelloWorld",
+		// 	constructor: {
+		// 		'return-value': {
+		// 			type: 'com.example.HelloWorld'
+		// 		}
+		// 	},
+		// 	methods: [
+		// 	{
+		// 		name: "live",
+		// 		interface: {
+		// 			'scope': 'public',
+		// 		}
+		// 	}
+		// 	]
+		// });
+		// 
+		// new TypeSafeClass({
+		// 	type: "com.example.HelloWorld",
+		// 	implements: "com.example.HelloWorld",
+		// 	constructor : function () {
+		// 	},
+		// 	properties: [
+		// 		{name:'type', type:'number'}
+		// 	],
+		// 	live: function () {
+		// 		this.setType(123);
+		// 	}
+		// });
+		// 
+		// var ourWorld = new com.example.HelloWorld();
+		// ourWorld.live();
+		// 
+		
+		</script>
+	</body>
+</html>
