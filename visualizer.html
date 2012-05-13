@@ -37,9 +37,6 @@
 		new TypeSafeClass({
 			type: 'com.scottbyrns.Visualization',
 			implements: 'com.scottbyrns.Visualization',
-			constructor: function () {
-				console.log('asdf');
-			},
 			drawInterface: function (interface, location) {
 				console.log('draw');
 			}
@@ -48,9 +45,6 @@
 		new TypeSafeClass({
 			type: 'com.scottbyrns.geo.Location',
 			implements: 'com.scottbyrns.geo.Location',
-			constructor: function () {
-				console.log('asdf');
-			},
 			properties: [
 				{name:"latitude", type:"number"},
 				{name:"longitude", type:"number"}

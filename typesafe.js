@@ -122,6 +122,7 @@ var TypeSafeClass = function (global) {
 		
 		
 		var theClass = function (config) {
+			config.constructor = config.constructor || function () {};
 			// Creating an access controll list for restricting method access.
 			var methodAccessControlList = {};
 			try {
