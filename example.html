@@ -145,7 +145,7 @@
 			TAB + '	type: "com.example.HelloWorld",',
 			TAB + '	implements: "com.example.HelloWorld",',
 			TAB + '	constructor : function () {},',
-			TAB + '	properties: {},',
+			TAB + '	properties: [],',
 			TAB + '	live: function () {',
 			TAB + '		alert("hello world");',
 			TAB + '	}',
@@ -182,7 +182,7 @@
 			""
 		].join("\n");
 		
-		// 		
+		// 
 		// new Interface({
 		// 	type: "com.example.HelloWorld",
 		// 	constructor: {
@@ -203,16 +203,20 @@
 		// new TypeSafeClass({
 		// 	type: "com.example.HelloWorld",
 		// 	implements: "com.example.HelloWorld",
-		// 	constructor : function () {},
-		// 	properties: {},
+		// 	constructor : function () {
+		// 	},
+		// 	properties: [
+		// 		{name:'type', type:'number'}
+		// 	],
 		// 	live: function () {
-		// 		alert('hello world');
+		// 		this.setType(123);
 		// 	}
 		// });
 		// 
 		// var ourWorld = new com.example.HelloWorld();
 		// ourWorld.live();
 		// 
+		
 		</script>
 	</body>
 </html>
